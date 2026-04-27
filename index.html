@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Badminton Motion Lab</title>
+  <link rel="stylesheet" href="assets/badminton-styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="topbar">
+      <div class="title-wrap">
+        <p class="eyebrow">Badminton Motion Lab</p>
+        <h1>バドミントン動作解析</h1>
+      </div>
+      <div class="status-wrap">
+        <p id="status-badge" class="status-badge">待機中</p>
+        <p id="status-text" class="status-text">動画を読み込むと解析を開始できます。</p>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <aside class="control-panel">
+        <section class="panel-block">
+          <label class="field-label" for="video-input">動画ファイル</label>
+          <input id="video-input" type="file" accept="video/*">
+        </section>
+
+        <section class="panel-block">
+          <label class="field-label" for="video-url">動画URL</label>
+          <div class="url-row">
+            <input
+              id="video-url"
+              type="url"
+              inputmode="url"
+              placeholder="https://example.com/badminton-session.mp4">
+            <button id="load-url-button" class="secondary" type="button">URL読込</button>
+          </div>
+          <p class="field-hint">mp4 などの直接動画URLを指定できます。外部サーバーが CORS を許可していない場合は解析できません。</p>
+        </section>
+
+        <section class="panel-block control-grid">
+          <label>
+            <span class="field-label">利き手</span>
+            <select id="dominant-hand">
+              <option value="right">右</option>
+              <option value="left">左</option>
+            </select>
+          </label>
+          <label>
+            <span class="field-label">モデル</span>
+            <select id="model-type">
+              <option value="lite">Lite</option>
+              <option value="full" selected>Full</option>
+              <option value="heavy">Heavy</option>
+            </select>
+          </label>
+          <label>
+            <span class="field-label">解析FPS</span>
+            <select id="sample-rate">
+              <option value="12">12</option>
+              <option value="18" selected>18</option>
+              <option value="24">24</option>
+            </select>
+          </label>
+          <label class="confidence-field" for="confidence-threshold">
+            <span class="field-label">検出しきい値</span>
+            <div class="range-wrap">
+              <input id="confidence-threshold" type="range" min="0.35" max="0.9" step="0.05" value="0.55">
+              <strong id="confidence-value">0.55</strong>
+            </div>
+          </label>
+        </section>
+
+        <section class="panel-block action-row">
+          <button id="analyze-button" type="button">解析スタート</button>
+          <button id="export-button" class="secondary" type="button" disabled>JSON出力</button>
+          <button id="reset-button" class="ghost" type="button">リセット</button>
+        </section>
+
+        <section class="panel-block quick-grid">
+          <div class="quick-cell">
+            <span>動画長</span>
+            <strong id="video-duration">--</strong>
+          </div>
+          <div class="quick-cell">
+            <span>解析フレーム</span>
+            <strong id="frame-count">--</strong>
+          </div>
+          <div class="quick-cell">
+            <span>検出成功</span>
+            <strong id="detected-count">--</strong>
+          </div>
+          <div class="quick-cell">
+            <span>イベント</span>
+            <strong id="event-count">--</strong>
+          </div>
+        </section>
+      </aside>
+
+      <section class="viewer-grid">
+        <article class="viewer-card">
+          <div class="media-head">
+            <p class="eyebrow">Source View</p>
+            <h2>動画</h2>
+          </div>
+          <div class="video-stage">
+            <video id="analysis-video" controls playsinline preload="metadata" crossorigin="anonymous"></video>
+            <div id="stage-empty" class="stage-empty">
+              <p>動画を選択</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="viewer-card">
+          <div class="media-head">
+            <p class="eyebrow">Skeleton View</p>
+            <h2>骨格プレビュー</h2>
+          </div>
+          <div class="skeleton-stage">
+            <canvas id="skeleton-canvas"></canvas>
+            <div id="skeleton-empty" class="skeleton-empty">
+              <p>解析後に骨格を表示</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="timeline-panel">
+        <div class="timeline-top">
+          <div>
+            <p class="eyebrow">Session Trace</p>
+            <h2>タイムライン</h2>
+          </div>
+          <p id="timeline-caption" class="timeline-caption">解析後にスタンス幅と膝の沈み込みを表示します。</p>
+        </div>
+        <canvas id="timeline-canvas"></canvas>
+        <div class="timeline-legend">
+          <span class="legend-item"><i class="legend-swatch stance"></i>スタンス幅</span>
+          <span class="legend-item"><i class="legend-swatch knee"></i>膝の沈み込み</span>
+          <span class="legend-item"><i class="legend-swatch cursor"></i>再生位置</span>
+        </div>
+      </section>
+    </section>
+
+    <section class="metrics-band">
+      <article class="metric-card">
+        <span>推定成功率</span>
+        <strong id="coverage-value">--</strong>
+        <p id="coverage-note">全身が入るほど安定します。</p>
+      </article>
+      <article class="metric-card">
+        <span>構え維持率</span>
+        <strong id="ready-value">--</strong>
+        <p id="ready-note">準備姿勢に入れた時間割合です。</p>
+      </article>
+      <article class="metric-card">
+        <span>利き腕速度</span>
+        <strong id="speed-value">--</strong>
+        <p id="speed-note">肩幅で正規化した相対速度です。</p>
+      </article>
+      <article class="metric-card">
+        <span>踏み込み回数</span>
+        <strong id="lunge-value">--</strong>
+        <p id="lunge-note">深いランジ判定の回数です。</p>
+      </article>
+    </section>
+
+    <section class="analysis-grid">
+      <article class="analysis-panel">
+        <div class="panel-head">
+          <p class="eyebrow">Frame Inspector</p>
+          <h2>現在フレーム</h2>
+        </div>
+        <div class="inspector-time">
+          <span>再生位置</span>
+          <strong id="cursor-time">00:00.00</strong>
+        </div>
+        <dl class="reading-grid">
+          <div>
+            <dt>スタンス</dt>
+            <dd id="stance-reading">--</dd>
+          </div>
+          <div>
+            <dt>膝角度</dt>
+            <dd id="knee-reading">--</dd>
+          </div>
+          <div>
+            <dt>肩バランス</dt>
+            <dd id="balance-reading">--</dd>
+          </div>
+          <div>
+            <dt>打点準備</dt>
+            <dd id="reach-reading">--</dd>
+          </div>
+          <div>
+            <dt>体幹回旋</dt>
+            <dd id="rotation-reading">--</dd>
+          </div>
+          <div>
+            <dt>重心移動</dt>
+            <dd id="movement-reading">--</dd>
+          </div>
+        </dl>
+      </article>
+
+      <article class="analysis-panel">
+        <div class="panel-head">
+          <p class="eyebrow">Detected Events</p>
+          <h2>イベント</h2>
+        </div>
+        <ul id="event-list" class="event-list">
+          <li>解析後にイベントを表示します。</li>
+        </ul>
+      </article>
+
+      <article class="analysis-panel">
+        <div class="panel-head">
+          <p class="eyebrow">Coach Notes</p>
+          <h2>所見</h2>
+        </div>
+        <ul id="insight-list" class="insight-list">
+          <li>動画を解析すると所見を生成します。</li>
+        </ul>
+      </article>
+    </section>
+  </main>
+
+  <script type="module" src="assets/badminton-analyzer.js"></script>
+</body>
+</html>
