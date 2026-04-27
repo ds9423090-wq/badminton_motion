@@ -1,0 +1,66 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Private Fortune - Settings</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body data-page="settings">
+  <div id="auth-gate"></div>
+  <main id="app" hidden>
+    <header class="site-header">
+      <h1>Private Fortune</h1>
+      <nav>
+        <a href="index.html">Today</a>
+        <a href="log.html">Mood Log</a>
+        <a class="active" href="settings.html">Settings</a>
+      </nav>
+    </header>
+
+    <section class="card">
+      <h2>Profile</h2>
+      <form id="profile-form">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" maxlength="30" placeholder="Example: Saku">
+
+        <label for="birthday">Birthday</label>
+        <input id="birthday" name="birthday" type="date">
+
+        <label for="fortune-style">Fortune style</label>
+        <select id="fortune-style" name="fortune-style">
+          <option value="balance">Balanced</option>
+          <option value="love">Love focused</option>
+          <option value="work">Work focused</option>
+          <option value="calm">Calm focused</option>
+        </select>
+
+        <button type="submit">Save profile</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Change password</h2>
+      <form id="password-form">
+        <label for="current-password">Current password</label>
+        <input id="current-password" type="password" autocomplete="current-password" required>
+
+        <label for="new-password">New password</label>
+        <input id="new-password" type="password" autocomplete="new-password" required>
+
+        <button type="submit">Update password</button>
+      </form>
+      <p class="hint">Password is only valid in this browser.</p>
+    </section>
+
+    <section class="card">
+      <h2>Data</h2>
+      <button id="export-data" type="button">Export JSON</button>
+      <button id="clear-data" type="button" class="danger">Delete all data</button>
+      <p class="hint">Deletion cannot be undone.</p>
+    </section>
+  </main>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

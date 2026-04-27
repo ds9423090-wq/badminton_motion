@@ -1,0 +1,49 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Private Fortune - Mood Log</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body data-page="log">
+  <div id="auth-gate"></div>
+  <main id="app" hidden>
+    <header class="site-header">
+      <h1>Private Fortune</h1>
+      <nav>
+        <a href="index.html">Today</a>
+        <a class="active" href="log.html">Mood Log</a>
+        <a href="settings.html">Settings</a>
+      </nav>
+    </header>
+
+    <section class="card">
+      <h2>Save mood</h2>
+      <form id="log-form">
+        <label for="log-date">Date</label>
+        <input id="log-date" name="log-date" type="date" required>
+
+        <label for="mood">Mood</label>
+        <select id="mood" name="mood">
+          <option value="Good">Good</option>
+          <option value="Normal">Normal</option>
+          <option value="Low">Low</option>
+        </select>
+
+        <label for="note">Note</label>
+        <textarea id="note" name="note" rows="4" placeholder="Short memo"></textarea>
+
+        <button type="submit">Save</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>History</h2>
+      <ul id="log-list" class="log-list"></ul>
+    </section>
+  </main>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>
